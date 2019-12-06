@@ -1,6 +1,5 @@
 import React from 'react';
 import FormApp from './FormApp.js';
-import { element } from 'prop-types';
 
 class RestaurantList extends React.Component {
     constructor(props) {
@@ -18,29 +17,48 @@ class RestaurantList extends React.Component {
     }
 
     deleteRestaurant = async (itemID) => {
-        await this.setState((state) => ({
-            restaurant: this.state.restaurants.forEach((item, index) => {
-               if (item.id === itemID) {
-                this.state.restaurants.splice(index, 1);
-               }
-            })
-        }));
+        this.state.restaurants.forEach((item, index) => {
+            if (item.id === itemID) {
+             this.state.restaurants.splice(index, 1);
+            }
+         });
+        await this.setState({
+            restaurants: this.state.restaurants
+        });
         localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));
     }
 
-    editRestaurantField = async (itemID, currentField) => {
-        const newValue = document.getElementById('edit-form').nodeValue();
-        await this.setState((state) => ({
-            restaurant: this.state.restaurants.forEach((item, index) => {
-                if (item.id === itemID) {
-                  item.currentField = newValue;
-                }
-             })
-        }))
+    handleDoubleClick = async (itemID, key) => {
+        this.state.restaurants.forEach((item, index) => {
+            if (item.id === itemID) {
+               item[`${key}`].edit = true
+               }
+        });
+        await this.setState({
+            restaurants: this.state.restaurants
+        });
+        localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));     
     }
 
-    handleDoubleClick = (event) => {
-        event.preventDefault();
+    handleBlur = async (itemID, key) => {
+        this.state.restaurants.forEach((item, index) => {
+            if (item.id === itemID) {
+               item[`${key}`].edit = false
+               }
+        });
+        await this.setState({
+            restaurants: this.state.restaurants
+        });
+        localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));  
+    }
+
+    handleChange = (event) => {
+        this.setState({
+            [event.target.name]: {
+              edit: false,
+              val: event.target.value
+            }
+          })
     }
 
     componentDidMount() {
@@ -61,18 +79,18 @@ class RestaurantList extends React.Component {
                       <button className="btn restaurant-item__delete-button"
                       onClick={() => this.deleteRestaurant(element.id)}>&#10006;</button>
                       <div className="restaurant-item__header">
-                          <p>
-                          Restaurant:&nbsp;
-                  <span className="restaurant-item__name restaurant-text"
-                  onDoubleClick={this.handleDoubleClick}>
-                       {element.name}
-                  </span>
-                  </p>
-                  <p>
-                      Our address:&nbsp;
+                          <p> Restaurant:&nbsp;</p>
+                        {element.name.edit ? <form>
+            <input type="text" className="form-controls"
+            autoComplete="off" required autoFocus onChange={handleChange}
+            onBlur={() => this.handleBlur(element.id, 'name')} value={element.name.val}/>
+            </form>:  <span className="restaurant-text" name="name"
+                onDoubleClick={() => this.handleDoubleClick(element.id, 'name')}>
+                {element.name.val}</span>}
+                  <p>  Our address:&nbsp;
                   <span className="restaurant-item__address restaurant-text"
                   onDoubleClick={this.handleDoubleClick}>
-                      {element.address}
+                      {element.address.val}
                   </span>
                   </p>
                   </div>
@@ -80,7 +98,7 @@ class RestaurantList extends React.Component {
                       <h2>About us:</h2>
                   <span className="restaurant-item__description restaurant-text"
                   onDoubleClick={this.handleDoubleClick}>
-                       {element.description}
+                       {element.description.val}
                   </span>
                   <button className="btn">Learn More</button>
                   </div>

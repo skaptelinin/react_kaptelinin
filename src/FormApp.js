@@ -5,16 +5,28 @@ class FormApp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-        name: '',
-        description: '',
-        address: '',
+        name: {
+          val: '',
+          edit: false
+          },
+        description: {
+          val: '',
+          edit: false
+          },
+        address: {
+          val: '',
+          edit: false
+          },
         id: Math.random()
     };
   }
 
   handleChange = (event) => {
     this.setState({
-      [event.target.name]: event.target.value
+      [event.target.name]: {
+        edit: false,
+        val: event.target.value
+      }
     })
   }
 
@@ -25,9 +37,18 @@ class FormApp extends React.Component {
     }); 
     this.props.addRestaurant(this.state);
     this.setState({
-        name: '',
-        description: '',
-        address: '',
+        name: {
+          val: '',
+          edit: false
+          },
+        description: {
+          val: '',
+          edit: false
+          },
+        address: {
+          val: '',
+          edit: false
+          }
     })
   }
 
@@ -36,15 +57,15 @@ class FormApp extends React.Component {
     <form className="main-form" onSubmit={this.handleSubmit}>
       <input type="text" className="form-controls main-form__name"
       onChange={this.handleChange} required
-      name="name" autoComplete="off" value={this.state.name}/>
+      name="name" autoComplete="off" value={this.state.name.val}/>
 
       <input type="text" className="form-controls main-form__address"
       onChange={this.handleChange} required
-      name="address" autoComplete="off" value={this.state.address}/>
+      name="address" autoComplete="off" value={this.state.address.val}/>
 
       <input type="text" className="form-controls main-form__description"
       onChange={this.handleChange} required
-       name="description" autoComplete="off" value={this.state.description}/>
+       name="description" autoComplete="off" value={this.state.description.val}/>
 
       <button type="submit" className="btn" id="add-new-restaurant">Add</button>
     </form>);
