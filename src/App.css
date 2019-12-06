@@ -24,6 +24,67 @@
   color: white;
 }
 
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+
+header {
+ text-align: center;
+}
+
+h1, h2, h3 {
+  margin-block-start: 0;
+    margin-block-end: 0;
+}
+
+#root {
+  width: 70%;
+}
+
+.main-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.restaurant-item {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  border: 1px #cecece solid;
+  border-radius: 15px;
+  padding: 2% 3% 2%;
+}
+
+.restaurant-item__delete-button {
+  align-self: flex-end;
+}
+
+.restaurant-item__header {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.restaurant-item__footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.restaurant-text {
+  text-align: center;
+}
+
 .App-link {
   color: #61dafb;
 }

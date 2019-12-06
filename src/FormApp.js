@@ -10,8 +10,6 @@ class FormApp extends React.Component {
         address: '',
         id: Math.random()
     };
-    this.handleChange = this.handleChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleChange = (event) => {
@@ -23,12 +21,14 @@ class FormApp extends React.Component {
   handleSubmit = (event) => {
     event.preventDefault();
     this.setState({
-      name: this.state.name,
-      address: this.state.address,
-      description: this.state.description,
       id: Math.random()
-    });
-    console.log(this.state.name);
+    }); 
+    this.props.addRestaurant(this.state);
+    this.setState({
+        name: '',
+        description: '',
+        address: '',
+    })
   }
 
   render() {
