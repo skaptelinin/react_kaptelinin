@@ -30,11 +30,24 @@ class FormApp extends React.Component {
     })
   }
 
-  handleSubmit = (event) => {
+  handleSubmit = async (event) => {
     event.preventDefault();
-    this.setState({
-      id: Math.random()
-    }); 
+    await this.setState({
+      id: Math.random(),
+      name: {
+        val: this.state.name.val.replace(/ {1,}/gu, ' ').trim(),
+        edit: false
+        },
+      description: {
+        val: this.state.description.val.replace(/ {1,}/gu, ' ').trim(),
+        edit: false
+        },
+      address: {
+        val: this.state.address.val.replace(/ {1,}/gu, ' ').trim(),
+        edit: false
+        }
+    });
+    if (this.state.address.val && this.state.description.val && this.state.name.val) {
     this.props.addRestaurant(this.state);
     this.setState({
         name: {
@@ -50,6 +63,7 @@ class FormApp extends React.Component {
           edit: false
           }
     })
+  }
   }
 
   render() {

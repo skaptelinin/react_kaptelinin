@@ -29,7 +29,8 @@ class RestaurantList extends React.Component {
     }
 
     handleDoubleClick = async (itemID, key) => {
-        this.state.restaurants.forEach((item, index) => {
+        console.log(itemID, key);
+        this.state.restaurants.forEach((item) => {
             if (item.id === itemID) {
                item[`${key}`].edit = true
                }
@@ -41,7 +42,7 @@ class RestaurantList extends React.Component {
     }
 
     handleBlur = async (itemID, key) => {
-        this.state.restaurants.forEach((item, index) => {
+        this.state.restaurants.forEach((item) => {
             if (item.id === itemID) {
                item[`${key}`].edit = false
                }
@@ -52,13 +53,35 @@ class RestaurantList extends React.Component {
         localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));  
     }
 
-    handleChange = (event) => {
-        this.setState({
-            [event.target.name]: {
-              edit: false,
-              val: event.target.value
+    editRestaurant = async (text, key, itemID) => {
+        text = text.replace(/ {1,}/gu, ' ').trim();
+        this.state.restaurants.forEach((item) => {
+            if (item.id === itemID && text) {
+                item[`${key}`].val = text;
+                item[`${key}`].edit = false;
             }
-          })
+        });
+        await this.setState({
+            restaurants: this.state.restaurants
+        });
+        localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));
+    }
+
+    handleSubmit = (event, itemID) => {
+        event.preventDefault();
+        this.editRestaurant(event.target[0].value, event.target.name, itemID);
+    }
+
+    RenderInputOrSpan = (props) => {
+            return(<div>{
+                props.edit ? <form onSubmit={(event) => this.handleSubmit(event, props.itemID)} name={props.itemName} >
+            <input type="text" className="form-controls"
+            autoComplete="off" required autoFocus 
+            onBlur={() => this.handleBlur(props.itemID, props.itemName)} defaultValue={props.item}/>
+            </form>:  <span className="restaurant-text" name={props.itemName}
+                onDoubleClick={() => this.handleDoubleClick(props.itemID, props.itemName)}>
+                {props.item}</span>
+            }</div>)
     }
 
     componentDidMount() {
@@ -79,27 +102,21 @@ class RestaurantList extends React.Component {
                       <button className="btn restaurant-item__delete-button"
                       onClick={() => this.deleteRestaurant(element.id)}>&#10006;</button>
                       <div className="restaurant-item__header">
-                          <p> Restaurant:&nbsp;</p>
-                        {element.name.edit ? <form>
-            <input type="text" className="form-controls"
-            autoComplete="off" required autoFocus onChange={handleChange}
-            onBlur={() => this.handleBlur(element.id, 'name')} value={element.name.val}/>
-            </form>:  <span className="restaurant-text" name="name"
-                onDoubleClick={() => this.handleDoubleClick(element.id, 'name')}>
-                {element.name.val}</span>}
-                  <p>  Our address:&nbsp;
-                  <span className="restaurant-item__address restaurant-text"
-                  onDoubleClick={this.handleDoubleClick}>
-                      {element.address.val}
-                  </span>
-                  </p>
+                          <div className="restaurant-item__name">
+                          <h4> Restaurant:&nbsp;</h4>
+                          <this.RenderInputOrSpan edit = {element.name.edit} itemID = {element.id}
+                           itemName = "name" item = {element.name.val}/>
+                           </div>
+                           <div className="restaurant-item__address">
+                  <h4>  Our address:&nbsp;</h4>
+                  <this.RenderInputOrSpan edit = {element.address.edit} itemID = {element.id}
+                   itemName = "address" item = {element.address.val}/>
+                   </div>
                   </div>
                   <div className="restaurant-item__footer">
                       <h2>About us:</h2>
-                  <span className="restaurant-item__description restaurant-text"
-                  onDoubleClick={this.handleDoubleClick}>
-                       {element.description.val}
-                  </span>
+                      <this.RenderInputOrSpan edit = {element.description.edit} itemID = {element.id}
+                       itemName = "description" item = {element.description.val}/>
                   <button className="btn">Learn More</button>
                   </div>
               </div>  
