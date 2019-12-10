@@ -1,6 +1,7 @@
 import React from 'react';
 import FormApp from './FormApp';
 import { Link } from 'react-router-dom';
+import { async } from 'q';
 
 class RestaurantList extends React.Component {
   constructor(props) {
@@ -8,6 +9,8 @@ class RestaurantList extends React.Component {
     this.state = {
       restaurants: [],
       currentId: 0,
+      sortedByName: true,
+      sortedByRating: false,
     };
   }
 
@@ -164,6 +167,31 @@ class RestaurantList extends React.Component {
         }
       </div>
     )
+
+    sortByName = async() => {
+      let restaurantList = this.state.restaurants;
+
+      restaurantList.sort((aItem, bItem) => {
+        if (aItem.name.val > bItem.name.val) {
+          return 1;
+        }
+        if (aItem.name.val < bItem.name.val) {
+          return -1;
+        }
+
+        return 0;
+      });
+
+      await this.setState({ restaurants: restaurantList });
+    }
+
+    sortByRating = async() => {
+      let restaurantList = this.state.restaurants;
+
+      restaurantList.sort((aItem, bItem) => aItem.meanRating - bItem.meanRating);
+
+      await this.setState({ restaurants: restaurantList });
+    }
 
     render() {
       return (
