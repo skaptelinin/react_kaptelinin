@@ -1,99 +1,126 @@
 import React from 'react';
 import FormApp from './FormApp';
 import { Link } from 'react-router-dom';
-import { async } from 'q';
 
 class RestaurantList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       restaurants: [],
-      currentId: 0,
-      sortedByName: true,
-      sortedByRating: false,
+      sorted: {
+        byNameToMax: true,
+        byNameToMin: false,
+        byRatingToMax: false,
+        byRatingToMin: false,
+      },
     };
   }
 
   componentDidMount() {
     let temporaryRestaurantList = localStorage.getItem('restaurants_list');
 
-    let temporaryId = localStorage.getItem('current_id');
+    let temporarySorting = localStorage.getItem('sorting_rule');
 
     temporaryRestaurantList = (temporaryRestaurantList)
       ? JSON.parse(temporaryRestaurantList)
       : [];
-    temporaryId = (temporaryId)
-      ? JSON.parse(temporaryId)
-      : 0;
+    temporarySorting = (temporarySorting)
+      ? JSON.parse(temporarySorting)
+      : {
+        byNameToMax: true,
+        byNameToMin: false,
+        byRatingToMax: false,
+        byRatingToMin: false,
+      };
     this.setState({
       restaurants: temporaryRestaurantList,
-      currentId: temporaryId,
+      sorted: temporarySorting,
     });
   }
 
-    addRestaurant = async item => {
-      await this.setState(state => ({
-        restaurants: [...this.state.restaurants, item],
-        currentId: 0,
-      }));
-      localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));
-      localStorage.setItem('current_id', JSON.stringify(this.state.currentId));
+    addRestaurant = item => {
+      const { state: { restaurants: currentRestaurants } } = this;
+      const { state: { sorted: sorting } } = this;
+      const { byNameToMax: nameSortToMax } = sorting;
+      const { byRatingToMax: rateSortToMax } = sorting;
+      const { byNameToMin: nameSortToMin } = sorting;
+      const { byRatingToMin: rateSortToMin } = sorting;
+      const sortingRule = {
+        byNameToMax: nameSortToMax,
+        byNameToMin: nameSortToMin,
+        byRatingToMax: rateSortToMax,
+        byRatingToMin: rateSortToMin,
+      };
+
+      let newRestaurants = [...currentRestaurants, item];
+
+      newRestaurants = this.conditionalSort(newRestaurants);
+
+      this.updateLocalStorage(newRestaurants, sortingRule);
     }
 
     deleteRestaurant = async itemID => {
-      this.state.restaurants.forEach((item, index) => {
+
+      let { state: { restaurants: newRestaurants } } = this;
+
+      newRestaurants.forEach((item, index) => {
         if (item.id === itemID) {
-          this.state.restaurants.splice(index, 1);
+          newRestaurants.splice(index, 1);
         }
       });
-      await this.setState({ restaurants: this.state.restaurants });
-      localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));
+
+      newRestaurants = this.conditionalSort(newRestaurants);
+
+      await this.setState({ restaurants: newRestaurants });
+
+      localStorage.setItem('restaurants_list', JSON.stringify(newRestaurants));
     }
 
     handleDoubleClick = async(itemID, key) => {
-      console.log(itemID, key);
-      this.state.restaurants.forEach(item => {
+      const { state: { restaurants: currentRestaurants } } = this;
+
+      currentRestaurants.forEach(item => {
         if (item.id === itemID) {
           item[`${key}`].edit = true;
         }
       });
-      await this.setState({ restaurants: this.state.restaurants });
-      localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));
+      await this.setState({ restaurants: currentRestaurants });
     }
 
     handleBlur = async(itemID, key) => {
-      this.state.restaurants.forEach(item => {
+      const { state: { restaurants: currentRestaurants } } = this;
+
+      currentRestaurants.forEach(item => {
         if (item.id === itemID) {
           item[`${key}`].edit = false;
         }
       });
-      await this.setState({ restaurants: this.state.restaurants });
-      localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));
+      await this.setState({ restaurants: currentRestaurants });
     }
 
     editRestaurant = async(text, key, itemID) => {
+
+      let { state: { restaurants: newRestaurants } } = this;
+
       let newText = text;
 
       newText = newText.replace(/ {1,}/gu, ' ').trim();
-      this.state.restaurants.forEach(item => {
+      newRestaurants.forEach(item => {
         if (item.id === itemID && newText) {
           item[`${key}`].val = newText;
           item[`${key}`].edit = false;
         }
       });
-      await this.setState({ restaurants: this.state.restaurants });
-      localStorage.setItem('restaurants_list', JSON.stringify(this.state.restaurants));
+
+      newRestaurants = this.conditionalSort(newRestaurants);
+
+      await this.setState({ restaurants: newRestaurants });
+      localStorage.setItem('restaurants_list', JSON.stringify(newRestaurants));
     }
 
     handleSubmit = (event, itemID) => {
       event.preventDefault();
       this.editRestaurant(event.target[0].value, event.target.name, itemID);
-    }
-
-    handleTransition = async itemID => {
-      this.state.currentId = itemID;
-      await this.setState({ currentId: this.state.currentId });
-      localStorage.setItem('current_id', JSON.stringify(this.state.currentId));
     }
 
     RenderInputOrSpan = props => (
@@ -168,9 +195,7 @@ class RestaurantList extends React.Component {
       </div>
     )
 
-    sortByName = async() => {
-      let restaurantList = this.state.restaurants;
-
+    sortByName = restaurantList => {
       restaurantList.sort((aItem, bItem) => {
         if (aItem.name.val > bItem.name.val) {
           return 1;
@@ -182,16 +207,161 @@ class RestaurantList extends React.Component {
         return 0;
       });
 
-      await this.setState({ restaurants: restaurantList });
+      return restaurantList;
     }
 
-    sortByRating = async() => {
-      let restaurantList = this.state.restaurants;
-
+    sortByRating = restaurantList => {
       restaurantList.sort((aItem, bItem) => aItem.meanRating - bItem.meanRating);
 
-      await this.setState({ restaurants: restaurantList });
+      return restaurantList;
     }
+
+    conditionalSort = restaurantList => {
+      const { state: { sorted: sorting } } = this;
+      const { byNameToMax: nameSortToMax } = sorting;
+      const { byRatingToMax: rateSortToMax } = sorting;
+      const { byNameToMin: nameSortToMin } = sorting;
+
+      if (nameSortToMax) {
+        const NewRestaurantList = this.sortByName(restaurantList);
+
+        return NewRestaurantList;
+      }
+
+      if (nameSortToMin) {
+        const NewRestaurantList = this.sortByName(restaurantList).reverse();
+
+        return NewRestaurantList;
+      }
+
+      if (rateSortToMax) {
+        const NewRestaurantList = this.sortByRating(restaurantList);
+
+        return NewRestaurantList;
+      }
+
+      const NewRestaurantList = this.sortByRating(restaurantList).reverse();
+
+      return NewRestaurantList;
+    }
+
+    updateLocalStorage = async(restaurantList, sortingRule) => {
+      await this.setState({
+        sorted: sortingRule,
+        restaurants: restaurantList,
+      });
+      localStorage.setItem('restaurants_list', JSON.stringify(restaurantList));
+      localStorage.setItem('sorting_rule', JSON.stringify(sortingRule));
+    }
+
+    handleSortByNameToMax = () => {
+      const sortingRule = {
+        byNameToMax: true,
+        byNameToMin: false,
+        byRatingToMax: false,
+        byRatingToMin: false,
+      };
+
+      let { state: { restaurants: newRestaurants } } = this;
+
+      newRestaurants = this.sortByName(newRestaurants);
+      this.updateLocalStorage(newRestaurants, sortingRule);
+    }
+
+    handleSortByNameToMin = () => {
+      const sortingRule = {
+        byNameToMax: false,
+        byNameToMin: true,
+        byRatingToMax: false,
+        byRatingToMin: false,
+      };
+
+      let { state: { restaurants: newRestaurants } } = this;
+
+      newRestaurants = this.sortByName(newRestaurants).reverse();
+      this.updateLocalStorage(newRestaurants, sortingRule);
+    }
+
+    handleSortByRatingToMax = () => {
+      const sortingRule = {
+        byNameToMax: false,
+        byNameToMin: false,
+        byRatingToMax: true,
+        byRatingToMin: false,
+      };
+
+      let { state: { restaurants: newRestaurants } } = this;
+
+      newRestaurants = this.sortByRating(newRestaurants);
+      this.updateLocalStorage(newRestaurants, sortingRule);
+    }
+
+    handleSortByRatingToMin = () => {
+      const sortingRule = {
+        byNameToMax: false,
+        byNameToMin: false,
+        byRatingToMax: false,
+        byRatingToMin: true,
+      };
+
+      let { state: { restaurants: newRestaurants } } = this;
+
+      newRestaurants = this.sortByRating(newRestaurants).reverse();
+      this.updateLocalStorage(newRestaurants, sortingRule);
+    }
+
+    RenderSortingButtons = props => (
+      <div
+        className="sorting-buttons"
+      >
+        <div
+          className="sorting-buttons__by-name"
+        >
+          <span
+            className={`${(props.nameSortingToMax || props.nameSortingToMin) && 'hint'}`}
+          >
+          Sort by Name
+          </span>
+          <button
+            type="button"
+            className={`btn ${props.nameSortingToMax && 'hint'}`}
+            onClick={this.handleSortByNameToMax}
+          >
+          &#11015;
+          </button>
+          <button
+            type="button"
+            className={`btn ${props.nameSortingToMin && 'hint'}`}
+            onClick={this.handleSortByNameToMin}
+          >
+          &#11014;
+          </button>
+        </div>
+        <div
+          className="sorting-buttons__by-rating"
+        >
+          <span
+            className={`${(props.ratingSortingToMax || props.ratingSortingToMin) && 'hint'}`}
+          >
+          Sort by Rating
+          </span>
+          <button
+            type="button"
+            className={`btn ${props.ratingSortingToMax && 'hint'}`}
+            onClick={this.handleSortByRatingToMax}
+          >
+          &#11015;
+          </button>
+          <button
+            type="button"
+            className={`btn ${props.ratingSortingToMin && 'hint'}`}
+            onClick={this.handleSortByRatingToMin}
+          >
+          &#11014;
+          </button>
+        </div>
+      </div>
+    )
 
     render() {
       return (
@@ -201,6 +371,12 @@ class RestaurantList extends React.Component {
           <this.RenderHeader />
           <FormApp
             addRestaurant={this.addRestaurant}
+          />
+          <this.RenderSortingButtons
+            nameSortingToMax={this.state.sorted.byNameToMax}
+            nameSortingToMin={this.state.sorted.byNameToMin}
+            ratingSortingToMax={this.state.sorted.byRatingToMax}
+            ratingSortingToMin={this.state.sorted.byRatingToMin}
           />
           {this.state.restaurants.map(element => (
             <div
@@ -261,7 +437,6 @@ class RestaurantList extends React.Component {
                 />
                 <Link
                   to={`/food/${element.id}`}
-                  onClick={() => this.handleTransition(element.id)}
                 >
                     Learn More
                 </Link>

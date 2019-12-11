@@ -40,6 +40,29 @@ h1, h2, h3, h4 {
     margin-block-end: 0.3em;
 }
 
+span {
+  word-break: break-all;
+}
+
+a {
+  margin-top: 10%;
+}
+
+input {
+  margin: 3% 0 3%;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.to-main-page-link {
+  margin: 2% 0 2%;
+}
+
 #root {
   width: 70%;
 }
@@ -49,6 +72,18 @@ h1, h2, h3, h4 {
   flex-direction: column;
   align-items: center;
   justify-content: space-around;
+}
+
+.sorting-buttons {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hint {
+  color: #7e84f8
 }
 
 .btn {
@@ -70,7 +105,11 @@ h1, h2, h3, h4 {
   transition: background-color #7e84f8 ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out, all 0.3s ease-in-out
 }
 
-.restaurant-item {
+.btn:hover {
+  cursor: pointer;
+}
+
+.restaurant-item, .main-form {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -136,13 +175,17 @@ h1, h2, h3, h4 {
 }
 
 .menu-item__text {
-  margin-top: 40%;
+  margin-top: 37px;
 }
 
 .menu-item__meal-mark, .menu-item__text, .menu-item__central-column, .menu-item__mark-buttons {
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+
+.food-form {
+  margin: 0;
 }
 
 .menu-item__delete-button {

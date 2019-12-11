@@ -23,16 +23,19 @@ class MenuForm extends React.Component {
   }
 
   handleSubmit = async event => {
+    const { props: { addFood: addNewFood } } = this;
+    const { state: { name: { val: text } } } = this;
+
     event.preventDefault();
     await this.setState({
       id: Math.random(),
       name: {
-        val: this.state.name.val.replace(/ {1,}/gu, ' ').trim(),
+        val: text.replace(/ {1,}/gu, ' ').trim(),
         edit: false,
       },
     });
-    if (this.state.name.val) {
-      this.props.addFood(this.state);
+    if (text) {
+      addNewFood(this.state);
       this.setState({
         name: {
           val: '',
@@ -45,15 +48,20 @@ class MenuForm extends React.Component {
   render() {
     return (
       <form className="main-form" onSubmit={this.handleSubmit}>
-        <input
-          type="text"
-          className="form-controls main-form__name"
-          onChange={this.handleChange}
-          required
-          name="name"
-          autoComplete="off"
-          value={this.state.name.val}
-        />
+        <label
+          htmlFor="food-name"
+        >
+          Enter meal name
+          <input
+            type="text"
+            className="food-form"
+            onChange={this.handleChange}
+            required
+            name="name"
+            autoComplete="off"
+            value={this.state.name.val}
+          />
+        </label>
 
         <button
           type="submit"

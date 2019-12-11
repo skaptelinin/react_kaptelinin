@@ -1,106 +1,135 @@
 import React from 'react';
 import MenuForm from './MenuForm';
-import { Link } from 'react-router-dom';
 
 class RestaurantApp extends React.Component {
+
   constructor(props) {
     super(props);
     this.state = {
       menu: [],
-      id: localStorage.getItem('current_id'),
+      id: this.props.match.params.id,
     };
   }
 
   componentDidMount() {
+    const { state: { id: currentId } } = this;
     const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-    const currentRestaurant = temporaryRestaurantList.find(item => Number(item.id) === Number(this.state.id)) || {};
+    const currentRestaurant = temporaryRestaurantList.find(item => Number(item.id) === Number(currentId)) || {};
     const storedMenu = currentRestaurant.menu || [];
 
     this.setState({ menu: storedMenu });
   }
 
   computeRating = () => {
-    // const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-    // const currentRestaurant = temporaryRestaurantList.find(item => Number(item.id) === Number(itemID));
-    const currentMenu = this.state.menu;
+    const { state: { menu: currentMenu } } = this;
 
     let newRating = currentMenu.reduce((current, item) => item.rating + current, 0);
 
-    newRating = newRating/currentMenu.length;
+    newRating /= currentMenu.length;
     newRating = parseFloat(newRating.toFixed(1));
-    console.log(newRating);
+
     return newRating;
   }
 
-addFood = async item => {
-  await this.setState(state => ({ menu: [...this.state.menu, item] }));
-  const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-  const idOfRestaurant = temporaryRestaurantList.findIndex(element => Number(element.id) === Number(this.state.id));
+  sortByRating = restaurantList => {
+    const sortingRule = JSON.parse(localStorage.getItem('sorting_rule'));
 
-  temporaryRestaurantList[idOfRestaurant].menu = this.state.menu;
-  temporaryRestaurantList[idOfRestaurant].meanRating = this.computeRating();
-  localStorage.setItem('restaurants_list', JSON.stringify(temporaryRestaurantList));
+    if (sortingRule.byRatingToMax) {
+      return restaurantList.sort((aItem, bItem) => aItem.meanRating - bItem.meanRating);
+    }
+
+    if (sortingRule.byRatingToMin) {
+      return restaurantList.sort((aItem, bItem) => bItem.meanRating - aItem.meanRating);
+    }
+
+    return restaurantList;
+  }
+
+  updateLocalStorage = () => {
+    let temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
+
+    const { state: { id: currentId } } = this;
+    const { state: { menu: newMenu } } = this;
+    const idOfRestaurant = temporaryRestaurantList.findIndex(element => Number(element.id) === Number(currentId));
+
+    temporaryRestaurantList[idOfRestaurant].menu = newMenu;
+    temporaryRestaurantList[idOfRestaurant].meanRating = this.computeRating();
+    temporaryRestaurantList = this.sortByRating(temporaryRestaurantList);
+    localStorage.setItem('restaurants_list', JSON.stringify(temporaryRestaurantList));
+  }
+
+addFood = item => {
+  const newFoodItem = {
+    name: {
+      val: item.name.val,
+      edit: false,
+    },
+    rating: item.rating,
+    id: item.id,
+  };
+
+  const { state: { menu: currentMenu } } = this;
+
+  const newMenu = [...currentMenu, newFoodItem];
+
+  this.setState(
+    () => ({ menu: newMenu }),
+    () => this.updateLocalStorage()
+  );
 }
 
-deleteFood = async itemID => {
-  this.state.menu.forEach((item, index) => {
+deleteFood = itemID => {
+  const { state: { menu: currentMenu } } = this;
+
+  currentMenu.forEach((item, index) => {
     if (item.id === itemID) {
-      this.state.menu.splice(index, 1);
+      currentMenu.splice(index, 1);
     }
   });
-  await this.setState({ menu: this.state.menu });
-  const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-  const idOfRestaurant = temporaryRestaurantList.findIndex(item => Number(item.id) === Number(this.state.id));
-
-  temporaryRestaurantList[idOfRestaurant].menu = this.state.menu;
-  temporaryRestaurantList[idOfRestaurant].meanRating = this.computeRating(idOfRestaurant);
-  localStorage.setItem('restaurants_list', JSON.stringify(temporaryRestaurantList));
+  this.setState(
+    () => ({ menu: currentMenu }),
+    () => this.updateLocalStorage()
+  );
 }
 
-handleDoubleClick = async itemID => {
-  this.state.menu.forEach(item => {
+handleDoubleClick = itemID => {
+  const { state: { menu: currentMenu } } = this;
+
+  currentMenu.forEach(item => {
     if (item.id === itemID) {
       item.name.edit = true;
     }
   });
-  await this.setState({ menu: this.state.menu });
-  const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-  const idOfRestaurant = temporaryRestaurantList.findIndex(element => Number(element.id) === Number(this.state.id));
-
-  temporaryRestaurantList[idOfRestaurant].menu = this.state.menu;
-  localStorage.setItem('restaurants_list', JSON.stringify(temporaryRestaurantList));
+  this.setState({ menu: currentMenu });
 }
 
-handleBlur = async itemID => {
-  this.state.menu.forEach(item => {
+handleBlur = itemID => {
+  const { state: { menu: currentMenu } } = this;
+
+  currentMenu.forEach(item => {
     if (item.id === itemID) {
       item.name.edit = false;
     }
   });
-  await this.setState({ menu: this.state.menu });
-  const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-  const idOfRestaurant = temporaryRestaurantList.findIndex(element => Number(element.id) === Number(this.state.id));
-
-  temporaryRestaurantList[idOfRestaurant].menu = this.state.menu;
-  localStorage.setItem('restaurants_list', JSON.stringify(temporaryRestaurantList));
+  this.setState({ menu: currentMenu });
 }
 
-editFood = async(text, itemID) => {
+editFood = (text, itemID) => {
+  const { state: { menu: currentMenu } } = this;
+
   let newText = text;
 
   newText = newText.replace(/ {1,}/gu, ' ').trim();
-  this.state.menu.forEach(item => {
+  currentMenu.forEach(item => {
     if (item.id === itemID && newText) {
       item.name.val = newText;
       item.name.edit = false;
     }
   });
-  await this.setState({ menu: this.state.menu });
-  const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-  const idOfRestaurant = temporaryRestaurantList.findIndex(item => Number(item.id) === Number(this.state.id));
-
-  temporaryRestaurantList[idOfRestaurant].menu = this.state.menu;
-  localStorage.setItem('restaurants_list', JSON.stringify(temporaryRestaurantList));
+  this.setState(
+    () => ({ menu: currentMenu }),
+    () => this.updateLocalStorage()
+  );
 }
 
 handleSubmit = (event, itemID) => {
@@ -108,19 +137,18 @@ handleSubmit = (event, itemID) => {
   this.editFood(event.target[0].value, itemID);
 }
 
-rateFood = async(mark, itemID) => {
-  this.state.menu.forEach(item => {
+rateFood = (mark, itemID) => {
+  const { state: { menu: currentMenu } } = this;
+
+  currentMenu.forEach(item => {
     if (item.id === itemID) {
       item.rating = mark;
     }
   });
-  await this.setState({ menu: this.state.menu });
-  const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-  const idOfRestaurant = temporaryRestaurantList.findIndex(item => Number(item.id) === Number(this.state.id));
-
-  temporaryRestaurantList[idOfRestaurant].menu = this.state.menu;
-  temporaryRestaurantList[idOfRestaurant].meanRating = this.computeRating(idOfRestaurant);
-  localStorage.setItem('restaurants_list', JSON.stringify(temporaryRestaurantList));
+  this.setState(
+    () => ({ menu: currentMenu }),
+    () => this.updateLocalStorage()
+  );
 }
 
 RenderRatingButtons = props => {
@@ -130,10 +158,10 @@ RenderRatingButtons = props => {
     buttons.push(i);
   }
 
-  return buttons.map((item, index) => (
+  return buttons.map(item => (
     <button
       className="btn"
-      key={index}
+      key={Math.random()}
       type="button"
       onClick={() => this.rateFood(item, props.id)}
     >
@@ -181,7 +209,7 @@ RenderInputOrSpan = props => (
           >
             <input
               type="text"
-              className="form-controls"
+              className="food-form"
               autoComplete="off"
               required
               autoFocus
@@ -205,9 +233,11 @@ RenderInputOrSpan = props => (
 )
 
 RenderRestaurantName = () => {
+
+  const { state: { id: currentId } } = this;
   const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-  const idOfRestaurant = temporaryRestaurantList.findIndex(item => Number(item.id) === Number(this.state.id));
-  const currentName = temporaryRestaurantList[idOfRestaurant].name.val;
+  const idOfRestaurant = temporaryRestaurantList.findIndex(item => Number(item.id) === Number(currentId));
+  const { name: { val: currentName } } = temporaryRestaurantList[idOfRestaurant];
 
   return (
     <h1>
@@ -264,11 +294,12 @@ render() {
           </button>
         </div>
       ))}
-      <Link
-        to="/"
+      <a
+        href="/"
+        className="to-main-page-link"
       >
         Main Page
-      </Link>
+      </a>
     </div>
   );
 }
