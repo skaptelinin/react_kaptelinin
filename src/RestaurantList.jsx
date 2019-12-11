@@ -2,6 +2,8 @@ import React from 'react';
 import FormApp from './FormApp';
 import { Link } from 'react-router-dom';
 
+const negativeNumberForSorting = -1;
+
 class RestaurantList extends React.Component {
   constructor(props) {
     super(props);
@@ -201,7 +203,7 @@ class RestaurantList extends React.Component {
           return 1;
         }
         if (aItem.name.val < bItem.name.val) {
-          return -1;
+          return negativeNumberForSorting;
         }
 
         return 0;

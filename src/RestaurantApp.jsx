@@ -1,6 +1,8 @@
 import React from 'react';
 import MenuForm from './MenuForm';
 
+const maxMark = 5;
+
 class RestaurantApp extends React.Component {
 
   constructor(props) {
@@ -154,7 +156,7 @@ rateFood = (mark, itemID) => {
 RenderRatingButtons = props => {
   const buttons = [];
 
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= maxMark; i++) {
     buttons.push(i);
   }
 
