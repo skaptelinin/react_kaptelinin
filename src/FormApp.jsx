@@ -1,22 +1,27 @@
 import React from 'react';
 import './App.css';
+import validateInput from './helper';
+
+const initialState = {
+  name: {
+    val: '',
+    edit: false,
+  },
+  address: {
+    val: '',
+    edit: false,
+  },
+  description: {
+    val: '',
+    edit: false,
+  },
+};
 
 class FormApp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: {
-        val: '',
-        edit: false,
-      },
-      address: {
-        val: '',
-        edit: false,
-      },
-      description: {
-        val: '',
-        edit: false,
-      },
+      actualState: initialState,
       id: Math.random(),
       meanRating: null,
       menu: [],
@@ -25,70 +30,70 @@ class FormApp extends React.Component {
 
   handleChange = event => {
     this.setState({
-      [event.target.name]: {
-        edit: false,
-        val: event.target.value,
+      actualState: {
+        [event.target.name]: {
+          edit: false,
+          val: event.target.value,
+        },
       },
     });
   }
 
   handleSubmit = async event => {
-    const { state: { name: { val: nameText } } } = this;
-    const { state: { address: { val: addressText } } } = this;
-    const { state: { description: { val: descriptionText } } } = this;
-    const { props: { addRestaurant: addNewRestaurant } } = this;
-
+    let {
+      state: {
+        actualState: {
+          name: { val: restaurantName },
+          address: { val: restaurantAddress },
+          description: { val: restaurantDescription },
+        },
+      },
+      props: { addRestaurant: addNewRestaurant },
+    } = this;
 
     event.preventDefault();
+    restaurantName = validateInput(restaurantName);
+    restaurantAddress = validateInput(restaurantAddress);
+    restaurantDescription = validateInput(restaurantDescription);
     await this.setState({
-      id: Math.random(),
-      name: {
-        val: nameText.replace(/ {1,}/gu, ' ').trim(),
-        edit: false,
-      },
-      address: {
-        val: addressText.replace(/ {1,}/gu, ' ').trim(),
-        edit: false,
-      },
-      description: {
-        val: descriptionText.replace(/ {1,}/gu, ' ').trim(),
-        edit: false,
-      },
-      meanRating: null,
-      menu: [],
-    });
-    if (nameText && descriptionText && addressText) {
-      addNewRestaurant(this.state);
-      this.setState({
+      actualState: {
         name: {
-          val: '',
+          val: restaurantName,
           edit: false,
         },
         address: {
-          val: '',
+          val: restaurantAddress,
           edit: false,
         },
         description: {
-          val: '',
+          val: restaurantDescription,
           edit: false,
         },
-      });
+      },
+      id: Math.random(),
+      meanRating: null,
+      menu: [],
+    });
+    if (restaurantName && restaurantDescription && restaurantAddress) {
+      addNewRestaurant(this.state);
+      this.setState({ actualState: initialState });
     }
   }
 
   render() {
-    const { state: { name: { val: restaurantName } } } = this;
-    const { state: { address: { val: restaurantAddress } } } = this;
-    const { state: { description: { val: restaurantDescription } } } = this;
+    const {
+      state: {
+        actualState: {
+          name: { val: restaurantName },
+          address: { val: restaurantAddress },
+          description: { val: restaurantDescription },
+        },
+      },
+    } = this;
 
     return (
-      <form
-        className="main-form"
-        onSubmit={this.handleSubmit}
-      >
-        <label
-          htmlFor="name"
-        >
+      <form className="main-form" onSubmit={this.handleSubmit}>
+        <label htmlFor="name">
           Enter restaurant name
           <input
             type="text"
@@ -100,9 +105,7 @@ class FormApp extends React.Component {
             value={restaurantName}
           />
         </label>
-        <label
-          htmlFor="address"
-        >
+        <label htmlFor="address">
           Enter restaurant address
           <input
             type="text"
@@ -114,9 +117,7 @@ class FormApp extends React.Component {
             value={restaurantAddress}
           />
         </label>
-        <label
-          htmlFor="description"
-        >
+        <label htmlFor="description">
           Enter restaurant description
           <input
             type="text"
@@ -128,11 +129,7 @@ class FormApp extends React.Component {
             value={restaurantDescription}
           />
         </label>
-        <button
-          type="submit"
-          className="btn"
-          id="add-new-restaurant"
-        >
+        <button type="submit" className="btn">
            Add
         </button>
       </form>
