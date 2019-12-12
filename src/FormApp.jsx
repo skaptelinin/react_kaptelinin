@@ -9,11 +9,11 @@ class FormApp extends React.Component {
         val: '',
         edit: false,
       },
-      description: {
+      address: {
         val: '',
         edit: false,
       },
-      address: {
+      description: {
         val: '',
         edit: false,
       },
@@ -36,6 +36,7 @@ class FormApp extends React.Component {
     const { state: { name: { val: nameText } } } = this;
     const { state: { address: { val: addressText } } } = this;
     const { state: { description: { val: descriptionText } } } = this;
+    const { props: { addRestaurant: addNewRestaurant } } = this;
 
 
     event.preventDefault();
@@ -45,29 +46,29 @@ class FormApp extends React.Component {
         val: nameText.replace(/ {1,}/gu, ' ').trim(),
         edit: false,
       },
-      description: {
-        val: descriptionText.replace(/ {1,}/gu, ' ').trim(),
-        edit: false,
-      },
       address: {
         val: addressText.replace(/ {1,}/gu, ' ').trim(),
+        edit: false,
+      },
+      description: {
+        val: descriptionText.replace(/ {1,}/gu, ' ').trim(),
         edit: false,
       },
       meanRating: null,
       menu: [],
     });
     if (nameText && descriptionText && addressText) {
-      this.props.addRestaurant(this.state);
+      addNewRestaurant(this.state);
       this.setState({
         name: {
           val: '',
           edit: false,
         },
-        description: {
+        address: {
           val: '',
           edit: false,
         },
-        address: {
+        description: {
           val: '',
           edit: false,
         },
@@ -76,6 +77,10 @@ class FormApp extends React.Component {
   }
 
   render() {
+    const { state: { name: { val: restaurantName } } } = this;
+    const { state: { address: { val: restaurantAddress } } } = this;
+    const { state: { description: { val: restaurantDescription } } } = this;
+
     return (
       <form
         className="main-form"
@@ -87,12 +92,12 @@ class FormApp extends React.Component {
           Enter restaurant name
           <input
             type="text"
-            className="form-controls main-form__name"
+            className="form-control main-form__name"
             onChange={this.handleChange}
             required
             name="name"
             autoComplete="off"
-            value={this.state.name.val}
+            value={restaurantName}
           />
         </label>
         <label
@@ -101,12 +106,12 @@ class FormApp extends React.Component {
           Enter restaurant address
           <input
             type="text"
-            className="form-controls main-form__address"
+            className="form-control main-form__address"
             onChange={this.handleChange}
             required
             name="address"
             autoComplete="off"
-            value={this.state.address.val}
+            value={restaurantAddress}
           />
         </label>
         <label
@@ -115,12 +120,12 @@ class FormApp extends React.Component {
           Enter restaurant description
           <input
             type="text"
-            className="form-controls main-form__description"
+            className="form-control main-form__description"
             onChange={this.handleChange}
             required
             name="description"
             autoComplete="off"
-            value={this.state.description.val}
+            value={restaurantDescription}
           />
         </label>
         <button

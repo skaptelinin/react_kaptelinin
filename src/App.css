@@ -42,10 +42,11 @@ h1, h2, h3, h4 {
 
 span {
   word-break: break-all;
+  max-width: 100%;
 }
 
 a {
-  margin-top: 10%;
+  margin-top: 2%;
 }
 
 input {
@@ -53,6 +54,7 @@ input {
 }
 
 label {
+  width: 60%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -109,7 +111,7 @@ label {
   cursor: pointer;
 }
 
-.restaurant-item, .main-form {
+.restaurant-item, .main-form, .menu-form {
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -118,6 +120,10 @@ label {
   border: 1px #cecece solid;
   border-radius: 15px;
   padding: 2% 3% 2%;
+}
+
+form.menu-form {
+  width: 70%;
 }
 
 .restaurant-item__delete-button {
@@ -129,10 +135,11 @@ label {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-around;
 }
 
 .restaurant-item__name, .restaurant-item__address {
+  max-width: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -143,11 +150,21 @@ label {
   text-align: center;
 }
 
-.restaurant-item__footer {
+.restaurant-item__footer, .restaurant-item__description, .restaurant-item__container {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  margin-top: 5%;
+}
+
+.restaurant-item__edit-form {
+  width: 70%;
+}
+
+div.restaurant-item__container {
+  margin-top: 0;
 }
 
 .restaurant-text {
@@ -186,6 +203,21 @@ label {
 
 .food-form {
   margin: 0;
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: .175rem .75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: .25rem;
+  transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out
 }
 
 .menu-item__delete-button {

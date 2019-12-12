@@ -2,20 +2,19 @@ import React from 'react';
 import MenuForm from './MenuForm';
 
 const maxMark = 5;
+const nameOfRestaurantsStorage = 'restaurants_list';
+const nameOfSortingRuleStorage = 'sorting_rule';
 
 class RestaurantApp extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {
-      menu: [],
-      id: this.props.match.params.id,
-    };
+    this.state = { menu: [] };
   }
 
   componentDidMount() {
-    const { state: { id: currentId } } = this;
-    const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
+    const { props: { match: { params: { id: currentId } } } } = this;
+    const temporaryRestaurantList = JSON.parse(localStorage.getItem(nameOfRestaurantsStorage));
     const currentRestaurant = temporaryRestaurantList.find(item => Number(item.id) === Number(currentId)) || {};
     const storedMenu = currentRestaurant.menu || [];
 
@@ -34,7 +33,7 @@ class RestaurantApp extends React.Component {
   }
 
   sortByRating = restaurantList => {
-    const sortingRule = JSON.parse(localStorage.getItem('sorting_rule'));
+    const sortingRule = JSON.parse(localStorage.getItem(nameOfSortingRuleStorage));
 
     if (sortingRule.byRatingToMax) {
       return restaurantList.sort((aItem, bItem) => aItem.meanRating - bItem.meanRating);
@@ -48,16 +47,16 @@ class RestaurantApp extends React.Component {
   }
 
   updateLocalStorage = () => {
-    let temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
+    let temporaryRestaurantList = JSON.parse(localStorage.getItem(nameOfRestaurantsStorage));
 
-    const { state: { id: currentId } } = this;
+    const { props: { match: { params: { id: currentId } } } } = this;
     const { state: { menu: newMenu } } = this;
     const idOfRestaurant = temporaryRestaurantList.findIndex(element => Number(element.id) === Number(currentId));
 
     temporaryRestaurantList[idOfRestaurant].menu = newMenu;
     temporaryRestaurantList[idOfRestaurant].meanRating = this.computeRating();
     temporaryRestaurantList = this.sortByRating(temporaryRestaurantList);
-    localStorage.setItem('restaurants_list', JSON.stringify(temporaryRestaurantList));
+    localStorage.setItem(nameOfRestaurantsStorage, JSON.stringify(temporaryRestaurantList));
   }
 
 addFood = item => {
@@ -211,7 +210,7 @@ RenderInputOrSpan = props => (
           >
             <input
               type="text"
-              className="food-form"
+              className="food-form form-control"
               autoComplete="off"
               required
               autoFocus
@@ -236,10 +235,10 @@ RenderInputOrSpan = props => (
 
 RenderRestaurantName = () => {
 
-  const { state: { id: currentId } } = this;
-  const temporaryRestaurantList = JSON.parse(localStorage.getItem('restaurants_list'));
-  const idOfRestaurant = temporaryRestaurantList.findIndex(item => Number(item.id) === Number(currentId));
-  const { name: { val: currentName } } = temporaryRestaurantList[idOfRestaurant];
+  const { props: { match: { params: { id: currentId } } } } = this;
+  const temporaryRestaurantList = JSON.parse(localStorage.getItem(nameOfRestaurantsStorage));
+  const currentRestaurant = temporaryRestaurantList.find(item => Number(item.id) === Number(currentId));
+  const { name: { val: currentName } } = currentRestaurant;
 
   return (
     <h1>
@@ -252,6 +251,8 @@ RenderRestaurantName = () => {
 }
 
 render() {
+  const { state: { menu: menuList } } = this;
+
   return (
     <div
       className="main-section"
@@ -260,7 +261,7 @@ render() {
       <MenuForm
         addFood={this.addFood}
       />
-      {this.state.menu.map(element => (
+      {menuList.map(element => (
         <div
           key={element.id}
           className="menu-item"

@@ -3,6 +3,8 @@ import FormApp from './FormApp';
 import { Link } from 'react-router-dom';
 
 const negativeNumberForSorting = -1;
+const nameOfRestaurantsStorage = 'restaurants_list';
+const nameOfSortingRuleStorage = 'sorting_rule';
 
 class RestaurantList extends React.Component {
   constructor(props) {
@@ -19,9 +21,9 @@ class RestaurantList extends React.Component {
   }
 
   componentDidMount() {
-    let temporaryRestaurantList = localStorage.getItem('restaurants_list');
+    let temporaryRestaurantList = localStorage.getItem(nameOfRestaurantsStorage);
 
-    let temporarySorting = localStorage.getItem('sorting_rule');
+    let temporarySorting = localStorage.getItem(nameOfSortingRuleStorage);
 
     temporaryRestaurantList = (temporaryRestaurantList)
       ? JSON.parse(temporaryRestaurantList)
@@ -75,7 +77,7 @@ class RestaurantList extends React.Component {
 
       await this.setState({ restaurants: newRestaurants });
 
-      localStorage.setItem('restaurants_list', JSON.stringify(newRestaurants));
+      localStorage.setItem(nameOfRestaurantsStorage, JSON.stringify(newRestaurants));
     }
 
     handleDoubleClick = async(itemID, key) => {
@@ -117,85 +119,13 @@ class RestaurantList extends React.Component {
       newRestaurants = this.conditionalSort(newRestaurants);
 
       await this.setState({ restaurants: newRestaurants });
-      localStorage.setItem('restaurants_list', JSON.stringify(newRestaurants));
+      localStorage.setItem(nameOfRestaurantsStorage, JSON.stringify(newRestaurants));
     }
 
     handleSubmit = (event, itemID) => {
       event.preventDefault();
       this.editRestaurant(event.target[0].value, event.target.name, itemID);
     }
-
-    RenderInputOrSpan = props => (
-      <div>
-        {
-          props.edit
-            ? (
-              <form
-                onSubmit={event => this.handleSubmit(event, props.itemID)}
-                name={props.itemName}
-              >
-                <input
-                  type="text"
-                  className="form-controls"
-                  autoComplete="off"
-                  required
-                  autoFocus
-                  onBlur={() => this.handleBlur(props.itemID, props.itemName)}
-                  defaultValue={props.item}
-                />
-              </form>
-            )
-            : (
-              <span
-                className="restaurant-text"
-                name={props.itemName}
-                onDoubleClick={() => this.handleDoubleClick(props.itemID, props.itemName)}
-              >
-                {props.item}
-              </span>
-            )
-        }
-      </div>
-    )
-
-    RenderHeader = () => (
-      <div
-        className="main-header"
-      >
-        <h1>
-          This is restaurant rating by React
-        </h1>
-        <h3>
-          You can add new restaurant, or delete some one, or edit them description.
-        </h3>
-        <h3>
-          For more details click on &quot;Learn More&quot; button
-        </h3>
-      </div>
-    )
-
-    RenderRating = props => (
-      <div
-        className="restaurant-item__rating"
-      >
-        <h4>
-            Mean rating is
-        </h4>
-        {
-          props.meanRating
-            ? (
-              <h4>
-                {props.meanRating}
-              </h4>
-            )
-            : (
-              <h5>
-            No one meal has been rated
-              </h5>
-            )
-        }
-      </div>
-    )
 
     sortByName = restaurantList => {
       restaurantList.sort((aItem, bItem) => {
@@ -252,8 +182,8 @@ class RestaurantList extends React.Component {
         sorted: sortingRule,
         restaurants: restaurantList,
       });
-      localStorage.setItem('restaurants_list', JSON.stringify(restaurantList));
-      localStorage.setItem('sorting_rule', JSON.stringify(sortingRule));
+      localStorage.setItem(nameOfRestaurantsStorage, JSON.stringify(restaurantList));
+      localStorage.setItem(nameOfSortingRuleStorage, JSON.stringify(sortingRule));
     }
 
     handleSortByNameToMax = () => {
@@ -365,7 +295,89 @@ class RestaurantList extends React.Component {
       </div>
     )
 
+    RenderInputOrSpan = props => (
+      <div
+        className="restaurant-item__container"
+      >
+        {
+          props.edit
+            ? (
+              <form
+                onSubmit={event => this.handleSubmit(event, props.itemID)}
+                className="restaurant-item__edit-form"
+                name={props.itemName}
+              >
+                <input
+                  type="text"
+                  className="form-control"
+                  autoComplete="off"
+                  required
+                  autoFocus
+                  onBlur={() => this.handleBlur(props.itemID, props.itemName)}
+                  defaultValue={props.item}
+                />
+              </form>
+            )
+            : (
+              <span
+                className="restaurant-text"
+                name={props.itemName}
+                onDoubleClick={() => this.handleDoubleClick(props.itemID, props.itemName)}
+              >
+                {props.item}
+              </span>
+            )
+        }
+      </div>
+    )
+
+    RenderHeader = () => (
+      <div
+        className="main-header"
+      >
+        <h1>
+          This is restaurant rating by React
+        </h1>
+        <h3>
+          You can add new restaurant, or delete some one, or edit them description.
+        </h3>
+        <h3>
+          For more details click on &quot;Learn More&quot; button
+        </h3>
+      </div>
+    )
+
+    RenderRating = props => (
+      <div
+        className="restaurant-item__rating"
+      >
+        <h4>
+            Mean rating is
+        </h4>
+        {
+          props.meanRating
+            ? (
+              <h4>
+                {props.meanRating}
+              </h4>
+            )
+            : (
+              <h5>
+            No one meal has been rated
+              </h5>
+            )
+        }
+      </div>
+    )
+
     render() {
+      const { state: { sorted: sorting } } = this;
+      const { byNameToMax: nameSortToMax } = sorting;
+      const { byNameToMin: nameSortToMin } = sorting;
+      const { byRatingToMax: rateSortToMax } = sorting;
+      const { byRatingToMin: rateSortToMin } = sorting;
+      const { state: { restaurants: restaurantList } } = this;
+
       return (
         <div
           className="main-section"
@@ -375,12 +387,12 @@ class RestaurantList extends React.Component {
             addRestaurant={this.addRestaurant}
           />
           <this.RenderSortingButtons
-            nameSortingToMax={this.state.sorted.byNameToMax}
-            nameSortingToMin={this.state.sorted.byNameToMin}
-            ratingSortingToMax={this.state.sorted.byRatingToMax}
-            ratingSortingToMin={this.state.sorted.byRatingToMin}
+            nameSortingToMax={nameSortToMax}
+            nameSortingToMin={nameSortToMin}
+            ratingSortingToMax={rateSortToMax}
+            ratingSortingToMin={rateSortToMin}
           />
-          {this.state.restaurants.map(element => (
+          {restaurantList.map(element => (
             <div
               key={element.id}
               className="restaurant-item"
