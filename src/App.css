@@ -189,10 +189,16 @@ div.restaurant-item__container {
 .menu-item__central-column {
   align-self: flex-start;
   justify-content: space-between;
+  width: 65%;
+}
+
+.menu-item__edit-form {
+  width: 100%;
 }
 
 .menu-item__text {
   margin-top: 37px;
+  width: 100%;
 }
 
 .menu-item__meal-mark, .menu-item__text, .menu-item__central-column, .menu-item__mark-buttons {

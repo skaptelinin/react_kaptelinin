@@ -207,6 +207,7 @@ RenderInputOrSpan = props => (
           <form
             onSubmit={event => this.handleSubmit(event, props.itemID)}
             name="name"
+            className="menu-item__edit-form"
           >
             <input
               type="text"
