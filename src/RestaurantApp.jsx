@@ -1,9 +1,11 @@
 import React from 'react';
 import MenuForm from './MenuForm';
-
-const maxMark = 5;
-const nameOfRestaurantsStorage = 'restaurants_list';
-const nameOfSortingRuleStorage = 'sorting_rule';
+import RenderRatingButtons from './RenderRatingButtons';
+import RenderMealMark from './RenderMealMark';
+import RenderInputOrSpan from './RenderInputOrSpan.jsx';
+import RenderRestaurantName from './RenderRestaurantName.jsx';
+import * as constantsModule from './constants';
+import * as helperModule from './helper';
 
 class RestaurantApp extends React.Component {
 
@@ -13,83 +15,41 @@ class RestaurantApp extends React.Component {
   }
 
   componentDidMount() {
-    const { props: { match: { params: { id: currentId } } } } = this;
-    const temporaryRestaurantList = JSON.parse(localStorage.getItem(nameOfRestaurantsStorage));
+    const currentId = this.props.match.params.id;
+    const temporaryRestaurantList = JSON.parse(localStorage.getItem(constantsModule.nameOfRestaurantsStorage));
     const currentRestaurant = temporaryRestaurantList.find(item => Number(item.id) === Number(currentId)) || {};
     const storedMenu = currentRestaurant.menu || [];
 
     this.setState({ menu: storedMenu });
   }
 
-  computeRating = () => {
-    const { state: { menu: currentMenu } } = this;
-
-    let newRating = currentMenu.reduce((current, item) => item.rating + current, 0);
-
-    newRating /= currentMenu.length;
-    newRating = parseFloat(newRating.toFixed(1));
-
-    return newRating;
-  }
-
-  sortByRating = restaurantList => {
-    const sortingRule = JSON.parse(localStorage.getItem(nameOfSortingRuleStorage));
-
-    if (sortingRule.byRatingToMax) {
-      return restaurantList.sort((aItem, bItem) => aItem.meanRating - bItem.meanRating);
-    }
-
-    if (sortingRule.byRatingToMin) {
-      return restaurantList.sort((aItem, bItem) => bItem.meanRating - aItem.meanRating);
-    }
-
-    return restaurantList;
-  }
-
-  updateLocalStorage = () => {
-    let temporaryRestaurantList = JSON.parse(localStorage.getItem(nameOfRestaurantsStorage));
-
-    const { props: { match: { params: { id: currentId } } } } = this;
-    const { state: { menu: newMenu } } = this;
-    const idOfRestaurant = temporaryRestaurantList.findIndex(element => Number(element.id) === Number(currentId));
-
-    temporaryRestaurantList[idOfRestaurant].menu = newMenu;
-    temporaryRestaurantList[idOfRestaurant].meanRating = this.computeRating();
-    temporaryRestaurantList = this.sortByRating(temporaryRestaurantList);
-    localStorage.setItem(nameOfRestaurantsStorage, JSON.stringify(temporaryRestaurantList));
-  }
-
 addFood = item => {
   const newFoodItem = {
     name: {
-      val: item.name.val,
-      edit: false,
+      itemValue: item.name.itemValue,
+      itemCorrection: false,
     },
     rating: item.rating,
     id: item.id,
   };
 
+  const currentId = this.props.match.params.id;
   const { state: { menu: currentMenu } } = this;
 
   const newMenu = [...currentMenu, newFoodItem];
 
   this.setState(
     () => ({ menu: newMenu }),
-    () => this.updateLocalStorage()
+    () => helperModule.updateLocalStorage(currentId, newMenu)
   );
 }
 
 deleteFood = itemID => {
-  const { state: { menu: currentMenu } } = this;
+  const currentId = this.props.match.params.id;
 
-  currentMenu.forEach((item, index) => {
-    if (item.id === itemID) {
-      currentMenu.splice(index, 1);
-    }
-  });
   this.setState(
-    () => ({ menu: currentMenu }),
-    () => this.updateLocalStorage()
+    prevState => ({ menu: prevState.filter(item => item.id !== itemID) }),
+    () => helperModule.updateLocalStorage(currentId, this.state.menu)
   );
 }
 
@@ -98,7 +58,7 @@ handleDoubleClick = itemID => {
 
   currentMenu.forEach(item => {
     if (item.id === itemID) {
-      item.name.edit = true;
+      item.name.itemCorrection = true;
     }
   });
   this.setState({ menu: currentMenu });
@@ -109,7 +69,7 @@ handleBlur = itemID => {
 
   currentMenu.forEach(item => {
     if (item.id === itemID) {
-      item.name.edit = false;
+      item.name.itemCorrection = false;
     }
   });
   this.setState({ menu: currentMenu });
@@ -117,19 +77,18 @@ handleBlur = itemID => {
 
 editFood = (text, itemID) => {
   const { state: { menu: currentMenu } } = this;
+  const newText = helperModule.validateInput(text);
+  const currentId = this.props.match.params.id;
 
-  let newText = text;
-
-  newText = newText.replace(/ {1,}/gu, ' ').trim();
   currentMenu.forEach(item => {
     if (item.id === itemID && newText) {
-      item.name.val = newText;
-      item.name.edit = false;
+      item.name.itemValue = newText;
+      item.name.itemCorrection = false;
     }
   });
   this.setState(
     () => ({ menu: currentMenu }),
-    () => this.updateLocalStorage()
+    () => helperModule.updateLocalStorage(currentId, currentMenu)
   );
 }
 
@@ -140,6 +99,7 @@ handleSubmit = (event, itemID) => {
 
 rateFood = (mark, itemID) => {
   const { state: { menu: currentMenu } } = this;
+  const currentId = this.props.match.params.id;
 
   currentMenu.forEach(item => {
     if (item.id === itemID) {
@@ -148,146 +108,42 @@ rateFood = (mark, itemID) => {
   });
   this.setState(
     () => ({ menu: currentMenu }),
-    () => this.updateLocalStorage()
-  );
-}
-
-RenderRatingButtons = props => {
-  const buttons = [];
-
-  for (let i = 1; i <= maxMark; i++) {
-    buttons.push(i);
-  }
-
-  return buttons.map(item => (
-    <button
-      className="btn"
-      key={Math.random()}
-      type="button"
-      onClick={() => this.rateFood(item, props.id)}
-    >
-      {item}
-    </button>
-  ));
-}
-
-RenderMealMark = props => (
-  <div
-    className="menu-item__meal-mark"
-  >
-    <h4>
-        Your mark is
-    </h4>
-    {
-      props.mark
-        ? (
-          <h4>
-            {props.mark}
-          </h4>
-        )
-        : (
-          <h4>
-    Not Choosing
-          </h4>
-        )
-    }
-  </div>
-)
-
-RenderInputOrSpan = props => (
-  <div
-    className="menu-item__text"
-  >
-    <h4>
-        Meal name
-    </h4>
-    {
-      props.edit
-        ? (
-          <form
-            onSubmit={event => this.handleSubmit(event, props.itemID)}
-            name="name"
-            className="menu-item__edit-form"
-          >
-            <input
-              type="text"
-              className="food-form form-control"
-              autoComplete="off"
-              required
-              autoFocus
-              onBlur={() => this.handleBlur(props.itemID)}
-              defaultValue={props.item}
-            />
-          </form>
-        )
-
-        : (
-          <span
-            className="restaurant-text"
-            name="name"
-            onDoubleClick={() => this.handleDoubleClick(props.itemID)}
-          >
-            {props.item}
-          </span>
-        )
-    }
-  </div>
-)
-
-RenderRestaurantName = () => {
-
-  const { props: { match: { params: { id: currentId } } } } = this;
-  const temporaryRestaurantList = JSON.parse(localStorage.getItem(nameOfRestaurantsStorage));
-  const currentRestaurant = temporaryRestaurantList.find(item => Number(item.id) === Number(currentId));
-  const { name: { val: currentName } } = currentRestaurant;
-
-  return (
-    <h1>
-          The&nbsp;
-      {currentName}
-      {' '}
-    restaurant
-    </h1>
+    () => helperModule.updateLocalStorage(currentId, currentMenu)
   );
 }
 
 render() {
-  const { state: { menu: menuList } } = this;
 
   return (
-    <div
-      className="main-section"
-    >
-      <this.RenderRestaurantName />
-      <MenuForm
-        addFood={this.addFood}
-      />
-      {menuList.map(element => (
-        <div
-          key={element.id}
-          className="menu-item"
-        >
-          <div
-            className="menu-item__mark-buttons"
-          >
+    <div className="main-section">
+      <RenderRestaurantName id={this.props.match.params.id} />
+      <MenuForm addFood={this.addFood} />
+      {this.state.menu.map(element => (
+        <div key={element.id} className="menu-item">
+          <div className="menu-item__mark-buttons">
             <span>
                 Choose your mark
             </span>
-            <this.RenderRatingButtons
-              id={element.id}
-            />
+            <RenderRatingButtons rateFood={this.rateFood} id={element.id} />
           </div>
-          <div
-            className="menu-item__central-column"
-          >
-            <this.RenderMealMark
-              mark={element.rating}
-            />
-            <this.RenderInputOrSpan
-              edit={element.name.edit}
-              itemID={element.id}
-              item={element.name.val}
-            />
+          <div className="menu-item__central-column">
+            <RenderMealMark mark={element.rating} />
+            <div className="menu-item__text">
+              <h4>
+          Meal name
+              </h4>
+              <RenderInputOrSpan
+                itemCorrection={element.name.itemCorrection}
+                itemName={constantsModule.name}
+                formClass={constantsModule.mealEditFormClass}
+                inputAdditionalClass={constantsModule.foodEditTypeClass}
+                itemID={element.id}
+                item={element.name.itemValue}
+                handleBlur={this.handleBlur}
+                handleDoubleClick={this.handleDoubleClick}
+                handleSubmit={this.handleSubmit}
+              />
+            </div>
           </div>
           <button
             type="button"
@@ -298,10 +154,7 @@ render() {
           </button>
         </div>
       ))}
-      <a
-        href="/"
-        className="to-main-page-link"
-      >
+      <a href="/" className="to-main-page-link">
         Main Page
       </a>
     </div>

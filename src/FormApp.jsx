@@ -1,52 +1,33 @@
 import React from 'react';
 import './App.css';
-import validateInput from './helper';
+import { validateInput } from './helper';
+import { name, address, description } from './constants';
 
 const initialState = {
-  name: {
-    val: '',
-    edit: false,
-  },
-  address: {
-    val: '',
-    edit: false,
-  },
-  description: {
-    val: '',
-    edit: false,
-  },
+  name: { itemValue: '' },
+  address: { itemValue: '' },
+  description: { itemValue: '' },
 };
 
 class FormApp extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      actualState: initialState,
+      ...initialState,
       id: Math.random(),
-      meanRating: null,
-      menu: [],
     };
   }
 
-  handleChange = event => {
-    this.setState({
-      actualState: {
-        [event.target.name]: {
-          edit: false,
-          val: event.target.value,
-        },
-      },
-    });
+  handleChange = ({ target: { value, name } }) => {
+    this.setState({ [name]: { itemValue: value } });
   }
 
-  handleSubmit = async event => {
+  handleSubmit = event => {
     let {
       state: {
-        actualState: {
-          name: { val: restaurantName },
-          address: { val: restaurantAddress },
-          description: { val: restaurantDescription },
-        },
+        name: { itemValue: restaurantName },
+        address: { itemValue: restaurantAddress },
+        description: { itemValue: restaurantDescription },
       },
       props: { addRestaurant: addNewRestaurant },
     } = this;
@@ -55,76 +36,66 @@ class FormApp extends React.Component {
     restaurantName = validateInput(restaurantName);
     restaurantAddress = validateInput(restaurantAddress);
     restaurantDescription = validateInput(restaurantDescription);
-    await this.setState({
-      actualState: {
-        name: {
-          val: restaurantName,
-          edit: false,
-        },
-        address: {
-          val: restaurantAddress,
-          edit: false,
-        },
-        description: {
-          val: restaurantDescription,
-          edit: false,
-        },
-      },
-      id: Math.random(),
-      meanRating: null,
-      menu: [],
-    });
-    if (restaurantName && restaurantDescription && restaurantAddress) {
-      addNewRestaurant(this.state);
-      this.setState({ actualState: initialState });
-    }
+    this.setState(
+      () => ({
+        name: { itemValue: restaurantName },
+        address: { itemValue: restaurantAddress },
+        description: { itemValue: restaurantDescription },
+        id: Math.random(),
+        meanRating: null,
+      }),
+      () => {
+        if (restaurantName && restaurantDescription && restaurantAddress) {
+          addNewRestaurant(this.state);
+          this.setState({ ...initialState });
+        }
+      }
+    );
   }
 
   render() {
     const {
       state: {
-        actualState: {
-          name: { val: restaurantName },
-          address: { val: restaurantAddress },
-          description: { val: restaurantDescription },
-        },
+        name: { itemValue: restaurantName },
+        address: { itemValue: restaurantAddress },
+        description: { itemValue: restaurantDescription },
       },
     } = this;
 
     return (
       <form className="main-form" onSubmit={this.handleSubmit}>
-        <label htmlFor="name">
+        <label htmlFor={name}>
           Enter restaurant name
           <input
             type="text"
             className="form-control main-form__name"
             onChange={this.handleChange}
             required
-            name="name"
+            name={name}
             autoComplete="off"
             value={restaurantName}
           />
         </label>
-        <label htmlFor="address">
+        <label htmlFor={address}>
           Enter restaurant address
           <input
             type="text"
             className="form-control main-form__address"
             onChange={this.handleChange}
             required
-            name="address"
+            name={address}
             autoComplete="off"
             value={restaurantAddress}
           />
         </label>
-        <label htmlFor="description">
+        <label htmlFor={description}>
           Enter restaurant description
           <input
             type="text"
             className="form-control main-form__description"
             onChange={this.handleChange}
             required
-            name="description"
+            name={description}
             autoComplete="off"
             value={restaurantDescription}
           />
