@@ -1,6 +1,8 @@
 import * as constantsModule from './constants';
 
-const validateInput = text => text.replace(/ {1,}/gu, ' ').trim();
+const validateInput = text => text.replace(/ {1,}/gu, ' ')
+  .replace(/[^a-zA-Zа-яА-Я ]+/gu, '')
+  .trim();
 
 const computeRating = currentMenu => {
   let newRating = currentMenu.reduce((current, item) => item.rating + current, 0);

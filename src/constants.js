@@ -13,6 +13,8 @@ const byNameToMin = 'by-name-to-min';
 const byRatingToMax = 'by-rating-to-max';
 const byRatingToMin = 'by-rating-to-min';
 
-export { name, address, description, maxMark, nameOfRestaurantsStorage, foodEditTypeClass,
+export {
+  name, address, description, maxMark, nameOfRestaurantsStorage, foodEditTypeClass,
   nameOfSortingRuleStorage, negativeNumberForSorting, mealEditFormClass, restaurantEditFormClass,
-  byNameToMax, byNameToMin, byRatingToMax, byRatingToMin };
+  byNameToMax, byNameToMin, byRatingToMax, byRatingToMin,
+};
